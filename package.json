@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "fs": "^0.0.1-security",
+    "google-libphonenumber": "^3.2.21",
+    "lodash": "^4.17.21",
+    "papaparse": "^5.3.1"
+  }
+}
