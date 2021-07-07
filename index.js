@@ -6,7 +6,7 @@ const _= require('lodash');
 //const phoneUtil = require('google-libphonenumber')
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
-let locale = 'BR'
+let locale = 'BR';
 
 let newFieldCreated = 'addresses';
 
@@ -47,45 +47,37 @@ function removeDuplicatedKeys(element, mappedKey){
                     element[key]=element[key].split(separators).concat(temp);
                 } 
             }
-            element[key]=Array.from(new Set(element[key]));
+            element[key]=Array.from(element[key]);
+            delete Object.assign(element, {[key+'s']: element[key] })[key];
         }
     }
     return element;
 }
-function formatEmail(data,key,emailsFound){
-    let validEmail = new RegExp(/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/g);
-
-    for(let email in emailsFound){
-        if(email.match(validEmail) != null || email.match(validEmail) != undefined){
-            data[newFieldCreated].concat({
-                "type": key.split(' ')[0],
-                "tags": key.split(' ').slice(1,key.split(' ').length),
-                "address": email
-            });
-        }
-    }
-}
-function formatPhone(data, key, phone){
-    if(phoneUtil.isValidNumberForRegion(phone, locale)){
-        data[newFieldCreated].concat({
-            "type": key.split(' ')[0],
-            "tags": key.split(' ').slice(1,key.split(' ').length),
-            "address": phone.getCountryCode()+phone.getNationalNumber()
-        });
-    }
-}
-function removeEmptyFields(data){
+function formatEmail(data){
+    let atSign = new RegExp(/([^\/\s:(){}]*.@.[^\/\s:(){}]*)/g);
     for(let key in data){
-        if(key.split(' ')>1){
-            delete data[key];
+        if(!Array.isArray(data[key])){
+            let emailsFound = data[key].match(atSign);
+            if(emailsFound != null || emailsFound != undefined){
+                for(let email in emailsFound){
+                    data[newFieldCreated].push({
+                        "type": key.split(' ')[0],
+                        "tags": key.split(' ').slice(1,key.split(' ').length),
+                        "address": emailsFound[email]
+                    });
+                }
+                delete data[key];
+            }
+            
         }
     }
+    return data;
+    
 }
-function formatFields(data){
+function formatPhone(data){
     let firstNumberKey = '';
     let phone = false;
     let number = 0;
-    let atSign = new RegExp(/([^\/\s:(){}]*.@.[^\/\s:(){}]*)/g);
 
     for(let key in data){
         try{
@@ -94,47 +86,105 @@ function formatFields(data){
         }catch(error){
             phone = false;
         }
-        if (firstNumberKey === '' && !isNaN(data[key])){
-            firstNumberKey = key;
-        }
-        else if(data[key].match(atSign) != null || data[key].match(atSign) != undefined){
-            formatEmail(data[key].match(atSign));
-            delete data[key];
+        if(firstNumberKey === '' && !isNaN(data[key])){
+            firstNumberKey=key;
         }
         else if(phone){
-            formatPhone(data, key, number);
+            if(phoneUtil.isValidNumberForRegion(number, locale)){
+            data[newFieldCreated].push({
+                "type": key.split(' ')[0],
+                "tags": key.split(' ').slice(1,key.split(' ').length),
+                "address": `${number.getCountryCode()}${number.getNationalNumber()}`
+                });
+            }
             delete data[key];
         }
-        else if(key.split(' ').length > 1 && !Array.isArray(data[key])){
-            if(data[key]=='' || data[key]==0 || data[key].toLowerCase()=='no' || data[key]===false || data[key]=='false'){
+        
+    }
+    return data;
+}
+function removeEmptyFields(data){
+    for(let key in data){
+        if(key.split(' ').length>1){
+            delete data[key];
+        }
+    }
+    return data;
+}
+function formatBooleanFields(data){
+    let firstNumberKey = '';
+    for(let key in data){
+        if(firstNumberKey === '' && !isNaN(data[key])){
+            firstNumberKey=key;
+        }
+        else if(Array.isArray(data[key])===false && data[key].length <=3){
+            if(data[key]=='' || data[key]==0 || data[key].toLowerCase()=='n' || data[key].toLowerCase()=='no' || data[key]===false || data[key]=='false'){
                 data[key] = false;
             }
-            else{
+            else if(data[key]==1 || data[key].toLowerCase()=='y'|| data[key].toLowerCase()=='yes' || data[key]!==false || data[key]!='false'){
                 data[key]=true;
             }
         }
     }
-    removeEmptyFields(data);
-}
-
+    return data;
+} 
 function formatData(unstructuredData, keys){
     let structuredData = papa.parse(unstructuredData, {header:true});
-    
-    for(let item of structuredData.data){
-        removeDuplicatedKeys(item, keys);
-        item[newFieldCreated]=[];
-        formatFields(item);
+    for(let item =0 ; item < structuredData.data.length; item++){
+        
+        structuredData.data[item][newFieldCreated]=[];
+        structuredData.data.splice(item, 1, formatEmail(structuredData.data[item]));
+        structuredData.data.splice(item, 1, formatPhone(structuredData.data[item]));
+        structuredData.data.splice(item, 1, removeDuplicatedKeys(structuredData.data[item], keys));
+        structuredData.data.splice(item, 1, formatBooleanFields(structuredData.data[item]));
+        structuredData.data.splice(item, 1, removeEmptyFields(structuredData.data[item]));
+        
     }
     
     return structuredData;
 }
+function removeUndesiredItems(array){
+    for(let index = 0; index<array.length; index++){
+        if(array[index]===''){
+            array.splice(index, 1);
+        }
+        else{
+            array.splice(index, 1, array[index].replace(/\s+/g, '').trim());
+        }        
+    }
+}
+function removeRepeatedItems(array){
+    for(let item in array){
+        for(let key in array[item]){
+            if(Array.isArray(array[item][key]) && 
+            array[item][key].some(values => typeof values == 'string')){
+                removeUndesiredItems(array[item][key]);
+                array[item][key] = Array.from(new Set(array[item][key])).sort();
+            }
+        }
+    }
+}
 let header = {};
-let csvFile = readCSV(filename);
-csvFile = duplicateKeys(csvFile);
-let storedData = formatData(csvFile, header);
-//data = _(data).groupBy('eid').map(_.spread(_.assign)).value();
-console.log(storedData);
-storedData = JSON.stringify(storedData.data);
-console.log(storedData);
 
+function main(){
+    let csvFile = readCSV(filename);
+    csvFile = duplicateKeys(csvFile);
+    let storedData = formatData(csvFile, header);
+    let order = '';
+    
+    for(let key in storedData.data[0]){
+        if(!isNaN(storedData.data[0][key])){
+            order = key;
+            break;
+        }    
+    }
+    const result = _(storedData.data)
+    .groupBy(order)
+    .map((g) => _.mergeWith({}, ...g, (obj, src) =>
+        _.isArray(obj) ? obj.concat(src) : undefined))
+    .value();
+    removeRepeatedItems(result);
+    console.log(JSON.stringify(result, null, 2));
+}
+main();
 
