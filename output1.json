@@ -1,0 +1,138 @@
+[
+  {
+    "fullname": "John Appleseed",
+    "eid": "1121",
+    "invisible": true,
+    "see_all": true,
+    "addresses": [
+      {
+        "type": "email",
+        "tags": [
+          "Student"
+        ],
+        "address": "john.appleseed@exemplo.com"
+      },
+      {
+        "type": "email",
+        "tags": [
+          "Parent"
+        ],
+        "address": "dad.appleseed@exemplo.com"
+      },
+      {
+        "type": "phone",
+        "tags": [
+          "Parent"
+        ],
+        "address": "5511999911234"
+      }
+    ],
+    "groups": [
+      "Noturno",
+      "Turma1",
+      "Turma2",
+      "Turma3",
+      "Turma6"
+    ]
+  },
+  {
+    "fullname": "Mary Knight",
+    "eid": "1123",
+    "invisible": false,
+    "see_all": false,
+    "addresses": [
+      {
+        "type": "email",
+        "tags": [
+          "Parent"
+        ],
+        "address": "dad.knight@exemplo.com"
+      },
+      {
+        "type": "phone",
+        "tags": [
+          "Student"
+        ],
+        "address": "5512999901235"
+      }
+    ],
+    "groups": [
+      ""
+    ]
+  },
+  {
+    "fullname": "Jack Littleton",
+    "eid": "1124",
+    "invisible": false,
+    "see_all": true,
+    "addresses": [
+      {
+        "type": "email",
+        "tags": [
+          "Student"
+        ],
+        "address": "jack.littleton@exemplo.com"
+      },
+      {
+        "type": "phone",
+        "tags": [
+          "Parent"
+        ],
+        "address": "5513999911236"
+      }
+    ],
+    "groups": [
+      "",
+      "Sala1"
+    ]
+  },
+  {
+    "fullname": "John Appleseed",
+    "eid": "1222",
+    "invisible": true,
+    "see_all": false,
+    "addresses": [
+      {
+        "type": "email",
+        "tags": [
+          "Student"
+        ],
+        "address": "john.appleseed1@exemplo.com"
+      },
+      {
+        "type": "email",
+        "tags": [
+          "Parent"
+        ],
+        "address": "dad.appleseed1@exemplo"
+      },
+      {
+        "type": "email",
+        "tags": [
+          "Parent"
+        ],
+        "address": "dad.appleseed2@exemplo.com"
+      },
+      {
+        "type": "phone",
+        "tags": [
+          "Student"
+        ],
+        "address": "5511999901235"
+      },
+      {
+        "type": "phone",
+        "tags": [
+          "Parent"
+        ],
+        "address": "5511999911235"
+      }
+    ],
+    "groups": [
+      "'Turma6'",
+      "Diurno",
+      "Turma2",
+      "Turma5"
+    ]
+  }
+]
