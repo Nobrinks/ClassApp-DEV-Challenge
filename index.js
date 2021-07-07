@@ -1,19 +1,16 @@
-const csv = require('csv-parser');
+//Node Version: 14.17.1
 const fs = require('fs');
 const papa = require('papaparse');
 const _= require('lodash');
-
-//const phoneUtil = require('google-libphonenumber')
-const PNF = require('google-libphonenumber').PhoneNumberFormat;
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
+
 let locale = 'BR';
-
 let newFieldCreated = 'addresses';
+let inputFilename = 'input1.csv';
+let outputFilename = "output1.json";
 
-let filename = 'input.csv';
 function readCSV(filePath){
     return fs.readFileSync(filePath, 'utf8');
-
 }
 
 function duplicateKeys(csvData){
@@ -165,9 +162,9 @@ function removeRepeatedItems(array){
     }
 }
 let header = {};
-
 function main(){
-    let csvFile = readCSV(filename);
+    
+    let csvFile = readCSV(inputFilename);
     csvFile = duplicateKeys(csvFile);
     let storedData = formatData(csvFile, header);
     let order = '';
@@ -178,13 +175,18 @@ function main(){
             break;
         }    
     }
-    const result = _(storedData.data)
+    let result = _(storedData.data)
     .groupBy(order)
     .map((g) => _.mergeWith({}, ...g, (obj, src) =>
         _.isArray(obj) ? obj.concat(src) : undefined))
     .value();
     removeRepeatedItems(result);
-    console.log(JSON.stringify(result, null, 2));
+    fs.writeFile(outputFilename, JSON.stringify(result, null, 2), err => {
+     
+        if (err) throw err; 
+       
+        console.log("Done writing"); // Success
+    });
 }
 main();
 
